@@ -39,6 +39,8 @@ const hash = (t:Fun):string=>
 
 type AST = ["app", [AST, ...AST[]]] | ["val", Val] | ["var", number]
 
+
+// create a function which takes l arguments, the body is represented by ast
 const compile :Fun = (l, ast) => {
   if (typeof l != "number") return "ERROR"
   let func = (...args:Val[])=>{
@@ -55,6 +57,7 @@ const compile :Fun = (l, ast) => {
   return new Function("func", `return (${vars})=> func(${vars})`)(func)
 }
 
+// turn a function into its AST representation
 const decompile: Fun = (v):[number, AST]=>{
   if (typeof v != "function") throw new Error("Expected a function")
   let vars = Array.from(v as any).map(_=>(()=>0) as Val)
