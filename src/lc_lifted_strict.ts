@@ -7,13 +7,15 @@ using eager evaluation, native value level and AST level for homoiconicity
 you can imagine using the ast to generate JS code and executing some functions as native JS.
 
 `
-import { hash as chash } from "crypto"
+import {hash as chash} from "bun"
 
 type Tagged <$,srcs,arg> = {$:$, srcs:srcs, arg:arg}
 type Var = Tagged<"var", [], number>
 type App = Tagged<"app", [AST, ...AST[]], null>
 type Lam= Tagged<"func", [AST], {name: string, length:number}>
-type Prim = Tagged<"prim", [], string | number>
+type Prim = Tagged<"prim", [], string | number | Fun>
+
+
 type AST = Prim | Lam | App | Var
 
 type Fun = (...x:Val[])=>Val
@@ -41,10 +43,9 @@ const matchv = <T>(
 
 const mk = <$ extends (AST & {arg:null})["$"], srcs extends (AST & {$:$})["srcs"]> ($:$, ...srcs:srcs) => ({$,srcs,arg:null} as AST & {$:$})
 const mkarg =  <$ extends (AST)["$"], arg extends (AST & {$:$})["arg"],  srcs extends (AST & {$:$})["srcs"]> ($:$, arg:arg, ...srcs:srcs) => ({$,srcs,arg} as AST & {$:$})
-const runhash = (t:string | null | number):string=> chash("sha1", String(t)).slice(0,10)
+const runhash = (t:string | null | number):string=> String(chash( String(t)))
 const hashed = new WeakMap<any, string>()
 const hashT=(t:AST):string=>hashed.getOrInsertComputed(t, ()=>runhash(match((b,l)=> "func" + hashT(b) + l, ()=> "app" + t.srcs.map(hashT).join(","), v=>"v"+v.arg,JSON.stringify,)(t)))
-
 
 const compile = (t:AST): string=>{
   let lines :string[] = []
@@ -122,29 +123,21 @@ const unAst = (t:AST):Fun => (f,a,v,p)=> match(
 
 const unquote:Fun= v => unAst(toast(v))
 const quote:Fun = v => (new Function("$", ...Lib.map(f=>f.name), v as string)(  ...Lib) as Val)
-
-
 const add: Fun = (x,y) => (x as number)+(y as number)
 const fmt:Fun=(t:Val):string=>compile(toast(t))
-
 const T:Fun = (t,f)=>t
 const F:Fun = (t,f)=>f
 const eq:Fun = (x,y)=>(x === y ? T : F )
 let Lib: Fun[] = [add, eq, unquote, quote];
 
-
 ` **** DEMO **** `
 
 const Z:Fun= f=>[g=>[f,x=>[g,g,x]], g=>[f,x=>[g,g,x]]]
 
-
 let demo = (t:Val)=>{
   t= new Function(...Lib.map(f=>f.name), compile(toast(t)))(...Lib) as Val
-  
   [fmt(t),"~>", fmt(ex(t)),"\n"].map(x=>console.log(x))
 }
-
-
 
 demo([add,2])
 demo([add,2,3])
@@ -159,8 +152,8 @@ demo ([mul, 4, 3])
 
 
 demo([unquote, add, 0,((nm, l, b)=>[add,"name:",nm]), 0,0])
-demo([unquote, add, 0,((nm, l, b)=>[add,"len:",l]), 0,0])
-demo([quote, "return (x,y) => [add,x]"])
+// demo([unquote, add, 0,((nm, l, b)=>[add,"len:",l]), 0,0])
+// demo([quote, "return (x,y) => [add,x]"])
 
 
 // const consumeN:Val = K=>[Z, (f,x)=>[eq, x, 0, _=>K, _=>_=>[f, [add, -1, x]] , 0]]
