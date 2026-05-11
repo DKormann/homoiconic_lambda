@@ -1,3 +1,7 @@
+`
+going back to a more faithfull plan implementation
+`
+
 type Pin = [Val]
 type Law = {arity: number, meta: Val, body: Val}
 type App = [Val, Val]
