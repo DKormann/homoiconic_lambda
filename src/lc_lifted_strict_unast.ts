@@ -69,13 +69,9 @@ const decompile: Fun = (v):[number, AST]=>{
 
 
 const add :Fun = (x,y)=> (x as number)+(y as number)
+const eq: Fun = (x,y)=> (x === y ? (t,f)=>t : (t,f)=>f)
 const length:Fun = (x)=>( typeof x == "function" || Array.isArray(x) ? x.length : 0  )
-const Lib: {[key:string] : Fun} = {
-  length,
-  add,
-  compile, uncompile: decompile,
-}
-
+const Lib: {[key:string] : Fun} = {length, eq, add, compile, uncompile: decompile,}
 
 
 const ex = (f:Val, ...args:Val[]) : Val =>
@@ -87,6 +83,9 @@ const ex = (f:Val, ...args:Val[]) : Val =>
   : args.length ? [f, ...args] : f
 
 
+
+console.log(ex(eq, 5, [add, 2, 3], "yes", "no"))
+
 console.log(ex((x,y)=>x, 2, 3))
 console.log(ex(add, 2,3))
 console.log(ex(add, [add, 1,2],3))
@@ -97,14 +96,3 @@ console.log(ex( length , [2,3, 4]))
 console.log(ex( length , [2,3, 4], 22))
 
 console.log(ex(compile(2, ["app", [["val", add], ["var", 0], ["var", 1]]]) , 2,3))
-
-
-{
-  type Sys<S> = S & {print: (x:string)=>void}
-  type IO = <S>(x:Sys<S>) => Sys<S>
-  const println  = (s:string):IO => x=>{x.print(s); return x}
-  const hello : IO = println("HELLO")
-  const world : IO = println("WORLD")
-  let chain = <T>(...f:((x:T)=>T)[]) => (x:T):T => f.reduce((a,c)=>c(a), x)
-  const main : IO = chain(hello, world)
-}

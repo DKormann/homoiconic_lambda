@@ -17,3 +17,16 @@ open questions:
  - why do we need pins
  - strict vs lazy evaluation
  - evaluate functions with gas at runtime?
+
+
+file history:
+  lc_naive*
+  lc_hoas*
+  lc_lifted
+  lc_lifted_strict
+  lc_pinless
+  lc_pinfull
+
+
+
+
